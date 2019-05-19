@@ -1,0 +1,11 @@
+body,html{
+    margin: 0;
+    padding: 0;
+}
+#main{
+    width: 1400px;
+    margin-left: 200px;
+}
+.jumbotron{
+    padding-left: 50px;
+}

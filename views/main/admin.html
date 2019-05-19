@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>白鹿原樱桃后台管理系统</title>
+    <link rel="stylesheet" href="/public/css/bootstrap.css">
+    <link rel="shortcut icon" href="../../public/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/public/css/admin.css">
+    <script src="/public/js/jquery.js"></script>
+    <script src="/public/js/bootstrap.js"></script>
+    <script src="/public/js/vue.js"></script>
+    <script src="/public/js/axios.js"></script>
+    <script src="/public/js/admin.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+            <a class="navbar-brand" href="/admin">樱花销售后台管理系统</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">操作管理项 <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#" @click="main_stadus=1">首页</a></li>
+                    <li><a href="#" @click="getUsersList()">用户管理</a></li>
+                    <li><a href="#" @click="getCherryList()">商品管理</a></li>
+                    <li><a href="#" @click="getOrderShopList()">订单管理</a></li>
+                </ul>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/">退出后台系统</a></li>
+            </ul>
+            </div>
+        </div>
+        </nav>
+
+        <!-- 主体管理部分 -->
+        <div id="main">
+            <div class="jumbotron" v-if="main_stadus==1">
+                <h1>欢迎进入樱花销售后台管理系统！</h1>
+                <p>管理员　${userInfo.username} ,你好！</p>
+            </div>
+            <div class="jumbotron" v-if="main_stadus==2">
+                <h1>用户的管理</h1>
+                <table class="table table-bordered table-hover table-striped">
+                    <tr>
+                        <td>序号</td>
+                        <td>用户名</td>
+                        <td>密码</td>
+                        <td>是否管理员</td>
+                        <td>操作</td>
+                    </tr>
+                    <tr v-for="(user, index) in usersList">
+                        <td>${index+1}</td>
+                        <td>${user.username}</td>
+                        <td>${user.password}</td>
+                        <td>${user.isAdmin}</td>
+                        <td><button class="btn btn-danger"　@click="deleteUserById(user._id)">删除用户</button></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="jumbotron" v-if="main_stadus==3">
+                    <h1>商品的管理</h1>
+                    <button  type="button"　class="btn btn-primary" data-toggle="modal" data-target="#myModalcherryAdd">添加商品</button>
+                    <br>
+                    <table class="table table-bordered table-hover table-striped">
+                        <tr>
+                            <td>序号</td>
+                            <td>商品标题</td>
+                            <td>商品简介</td>
+                            <td>商品价格</td>
+                            <td>商品图片</td>
+                            <td>操作</td>
+                        </tr>
+                        <tr v-for="(cherry, index) in cherrtList">
+                            <td>${index+1}</td>
+                            <td>${cherry.title}</td>
+                            <td>${cherry.desc}</td>
+                            <td>${cherry.price}</td>
+                            <td><img :src="cherry.c_img" alt="" style="width:50px;height:50px"></td>
+                            <td><button class="btn btn-danger"　@click="deleteCherryById(cherry._id)">删除商品</button></td>
+                        </tr>
+                    </table>
+            </div>
+            <div class="jumbotron" v-if="main_stadus==4">
+                    <h1>订单的管理</h1>
+                    <table class="table table-bordered table-hover table-striped">
+                        <tr>
+                            <td>序号</td>
+                            <td>购买的用户</td>
+                            <td>商品标题</td>
+                            <td>商品价格</td>
+                            <td>商品图片</td>
+                            <td>操作</td>
+                        </tr>
+                        <tr v-for="(cherry, index) in orderCatList">
+                            <td>${index+1}</td>
+                            <td>${cherry.u_id.username}</td>
+                            <td>${cherry.c_id.title}</td>
+                            <td>${cherry.c_id.price}</td>
+                            <td><img :src="cherry.c_id.c_img" alt="" style="width:50px;height:50px"></td>
+                            <td><button class="btn btn-danger"　@click="deleteCatById(cherry._id)">删除订单</button></td>
+                        </tr>
+                    </table>
+            </div>
+        </div>
+        
+      <!-- 商品的添加 -->
+      <div class="modal fade" id="myModalcherryAdd" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="myModalLabelcherryAdd">添加新的商品</h4>
+            </div>
+
+            <div v-if="cherryAddStadus=='no'">
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="cherryTitle">商品标题</label>
+                            <input v-model="addCherryInfo.title" type="test" class="form-control" id="cherryTitle" placeholder="商品标题">
+                        </div>
+                        <div class="form-group">
+                                <label for="cherryDesc">商品描述</label>
+                                <input v-model="addCherryInfo.desc" type="test" class="form-control" id="cherryDesc" placeholder="商品描述">
+                            </div>
+                        <div class="form-group">
+                            <label for="cherryPrice">商品价格</label>
+                            <input v-model="addCherryInfo.price" type="number" class="form-control" id="cherryPrice" placeholder="商品价格">
+                        </div>
+                        <div class="form-group">
+                            <label for="cherryImg">商品的图片</label>
+                                <input type="file" id="cherryImg">
+                            <p class="help-block">只能选择一张</p>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary"　@click="cherryAdd()">添加</button>
+                </div>
+            </div>
+
+            <div v-if="cherryAddStadus=='ok'">
+                <div class="modal-body">
+                    添加商品成功！
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"　@click="cherryAddStadus='no'">确定</button>
+                </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+</div>
+</body>
+</html>
